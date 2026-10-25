@@ -36,7 +36,7 @@ DSH 需要你的时候，弹一条 **KDE 桌面通知**，同时通过 **KDE Con
 ### 从 GitHub（无需 npm 账号）
 
 ```sh
-dsh plugin --profile web add github:Ahrunda/dsh-notify-kde
+dsh plugin --profile web add https://github.com/Ahrunda/dsh-notify-kde
 ```
 
 桌面端：侧栏 **插件** → **安装**，输入：
