@@ -1,0 +1,76 @@
+{
+  "name": "dsh-notify-kde",
+  "version": "0.1.0",
+  "description": "KDE desktop notification plus a KDE Connect phone ping when DSH finishes a turn, needs approval, or waits for an answer.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./format": "./lib/format.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "lib",
+    "cordis.patch.yml",
+    "tools",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "kde",
+    "kdeconnect",
+    "notification",
+    "notify-send"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "engines": {
+      "dsh": ">=0.2.1-rc.2"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.1-rc.2": "compatible"
+      }
+    },
+    "inventory": {
+      "title": {
+        "zh": "KDE 通知",
+        "en": "KDE Notify"
+      },
+      "description": {
+        "zh": "桌面通知 + KDE Connect 手机推送：跑完、等你回答、等你批准时提醒。",
+        "en": "Desktop notifications plus a KDE Connect phone ping when a turn finishes, a question waits, or approval is needed."
+      }
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test",
+    "smoke": "node tools/smoke.mjs",
+    "prepublishOnly": "npm test"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahrunda",
+    "url": "https://github.com/Ahrunda"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ahrunda/dsh-notify-kde.git"
+  },
+  "homepage": "https://github.com/Ahrunda/dsh-notify-kde#readme",
+  "bugs": {
+    "url": "https://github.com/Ahrunda/dsh-notify-kde/issues"
+  }
+}

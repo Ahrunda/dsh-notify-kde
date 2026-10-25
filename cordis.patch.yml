@@ -1,0 +1,17 @@
+# dsh-notify-kde — KDE 桌面通知 + KDE Connect 手机推送
+#
+# 主机侧监听 DSH 的会话事件：
+#   - turn/end（completed / error / blocked / max-tokens）→ 跑完/出错提醒
+#   - ask_user_question / exit_plan_mode（等 uiPromptDelayMs 还没答）→ 等你回答
+#   - approval/asked（等 approvalDelayMs 还没批）→ 等你批准
+#
+# 默认值都在 lib/config.js；这里只列想让 profile 明确覆盖的键。
+# 用户级覆盖写在 $DSH_HOME/notify-kde.json（优先级更高，`/notify-kde on|off` 写这里）。
+- insert:
+    - id: notify-kde
+      name: dsh-notify-kde
+      config:
+        minDurationMs: 30000
+        uiPromptDelayMs: 8000
+        desktopTimeoutMs: 8000
+        kdeconnect: true
