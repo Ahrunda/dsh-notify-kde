@@ -33,13 +33,17 @@ DSH 需要你的时候，弹一条 **KDE 桌面通知**，同时通过 **KDE Con
 
 ## 安装
 
-### 从 npm（发布后）
+### 从 GitHub（无需 npm 账号）
 
 ```sh
-dsh plugin --profile web add dsh-notify-kde
+dsh plugin --profile web add github:Ahrunda/dsh-notify-kde
 ```
 
-桌面端：侧栏 **插件** → **安装**，输入包名 `dsh-notify-kde` 后安装并启用。
+桌面端：侧栏 **插件** → **安装**，输入：
+
+```
+https://github.com/Ahrunda/dsh-notify-kde
+```
 
 安装后**重启 DSH**，在任意会话里发：
 
@@ -48,6 +52,14 @@ dsh plugin --profile web add dsh-notify-kde
 ```
 
 桌面应弹出一条 8 秒通知，手机会同时震一下。
+
+### 从 npm（如果以后发布到 npm）
+
+```sh
+dsh plugin --profile web add dsh-notify-kde
+```
+
+桌面端在插件页输入包名 `dsh-notify-kde`。
 
 ### 从本地目录（开发/未发布）
 
