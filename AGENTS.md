@@ -36,6 +36,9 @@
 - 事件形状：`turn/end` 的 `data.reason` 是 `{kind, error?}`；提问是
   `tool/call` 的 `data.name === 'ask_user_question'` / `'exit_plan_mode'`；
   审批是 `approval/asked` / `approval/decided`。
+- IM 桥接（Aurabot/QQ）的会话带 `header.agentPreset = aurabot-private |
+  aurabot-private-long | aurabot-social`。这些会话一轮常超过 30 秒，会被当成“跑完了”；
+  用 `ignoreAgentPresets` 按 preset 整体跳过，不要靠提高 minDurationMs 去抑制。
 
 ## 集成测试（不碰真实 `~/.dsh`）
 
@@ -58,7 +61,7 @@ cat "$SM/notify-kde.log"   # 应出现 desktop: sent (id N)
 
 ## 测试纪律
 
-- `node --test`（当前 33 条）。纯函数、notifier 决策表、入口接线都要有测试。
+- `node --test`（当前 37 条）。纯函数、notifier 决策表、入口接线都要有测试。
 - 每个修过的 bug 留一条**区分性断言**：bug 回来测试就红。
 - 真机链路用 `node tools/smoke.mjs --no-phone` / `--no-desktop` 分别验证，
   不要把“单测过”当成“通知真的弹了”。

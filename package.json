@@ -1,6 +1,6 @@
 {
   "name": "dsh-notify-kde",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "KDE desktop notification plus a KDE Connect phone ping when DSH finishes a turn, needs approval, or waits for an answer.",
   "type": "module",
   "main": "index.js",

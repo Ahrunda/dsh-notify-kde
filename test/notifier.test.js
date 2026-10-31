@@ -326,3 +326,34 @@ test('an interrupted turn is reported, unlike an explicit abort', async () => {
   assert.equal(sent.length, 1);
   assert.match(sent[0].args.at(-1), /停下来了/);
 });
+
+test('a session on an ignored agent preset never alerts', async () => {
+  const fake = createRun();
+  const { notifier, clock } = makeNotifier({ run: fake.run, patch: { ignoreAgentPresets: ['aurabot-private'] } });
+  const s = {
+    id: 'qq-1',
+    header: { cwd: '/home/u/Project/demo', agentPreset: 'aurabot-private' },
+    snapshotEvents: () => [],
+  };
+
+  notifier.onSessionEvent(s, { type: 'turn/start', data: { turn: 1 } });
+  clock.now = 60000;
+  notifier.onSessionEvent(s, { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } });
+  await wait();
+
+  assert.equal(notifyCalls(fake.calls).length, 0);
+  assert.equal(pingCalls(fake.calls).length, 0);
+});
+
+test('a normal session still alerts while Aurabot presets are ignored', async () => {
+  const fake = createRun();
+  const { notifier, clock } = makeNotifier({ run: fake.run, patch: { ignoreAgentPresets: ['aurabot-private'] } });
+  const s = session();
+
+  notifier.onSessionEvent(s, { type: 'turn/start', data: { turn: 1 } });
+  clock.now = 60000;
+  notifier.onSessionEvent(s, { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } });
+  await wait();
+
+  assert.equal(notifyCalls(fake.calls).length, 1);
+});

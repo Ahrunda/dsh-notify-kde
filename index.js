@@ -100,14 +100,26 @@ export function apply(ctx, config = {}) {
   if (commands !== undefined && typeof commands.register === 'function') {
     ctx.effect(() => commands.register({
       name: 'notify-kde',
-      description: 'notify-kde: 桌面通知 + KDE Connect 手机推送（status | test | on | off）',
-      input: { hint: 'status | test | on | off' },
+      description: 'notify-kde: 桌面通知 + KDE Connect 手机推送（status | test | on | off | ignore）',
+      input: { hint: 'status | test | on | off | ignore <preset...>' },
       async handler({ rawInput }) {
         const sub = String(rawInput ?? '').trim().toLowerCase();
         if (sub === 'on' || sub === 'off') {
           const enabled = sub === 'on';
           const result = notifier.toggle(enabled);
           return { kind: 'success', text: `notify-kde 已${enabled ? '开启' : '停用'}（${result.file}）` };
+        }
+        const parts = sub.split(/\s+/).filter(Boolean);
+        if (parts[0] === 'ignore' || parts[0] === 'unignore') {
+          const names = parts.slice(1);
+          if (names.length === 0) {
+            return { kind: 'error', text: '用法：/notify-kde ignore <preset...> 或 /notify-kde unignore <preset...>' };
+          }
+          const next = notifier.updateIgnorePresets(parts[0] === 'ignore' ? { add: names } : { remove: names });
+          return {
+            kind: 'success',
+            text: `已忽略 preset：${next.length ? next.join(', ') : '（无）'}`,
+          };
         }
         if (sub === 'test') {
           const result = await notifier.test();

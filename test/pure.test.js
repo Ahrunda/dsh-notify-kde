@@ -139,3 +139,8 @@ test('saveOverride backs up the previous file and keeps other keys', () => {
     else process.env.DSH_HOME = previous;
   }
 });
+
+test('normalize keeps a clean ignoreAgentPresets list', () => {
+  const config = normalize({ ignoreAgentPresets: [' aurabot-private ', 2, ''] });
+  assert.deepEqual(config.ignoreAgentPresets, ['aurabot-private']);
+});
