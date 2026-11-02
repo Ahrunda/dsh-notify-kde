@@ -66,7 +66,7 @@ dsh plugin --profile web add dsh-notify-kde
 
 1. 打开 DSH 侧栏 **插件** → **安装**。
 2. 在安装输入框里填本目录的绝对路径（例如 `/path/to/DSHPlugin`）；
-   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.1.tgz`。
+   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.2.tgz`。
 3. 安装后确认 `notify-kde` 是启用状态，然后**重启 DSH**。
 4. 发 `/notify-kde test` 验证。
 

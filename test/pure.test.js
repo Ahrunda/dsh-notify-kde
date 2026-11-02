@@ -151,9 +151,17 @@ test('buildNotifyArgs adds the default action and id/action fds', () => {
     'title',
     'body',
     7,
-    { action: '打开会话', idFd: 3, actionFd: 4 },
+    {
+      actions: [
+        { key: 'default', label: '打开会话' },
+        { key: 'open', label: '打开会话' },
+      ],
+      idFd: 3,
+      actionFd: 4,
+    },
   );
   assert.deepEqual(args.slice(args.indexOf('-A'), args.indexOf('-A') + 2), ['-A', 'default=打开会话']);
+  assert.ok(args.includes('open=打开会话'));
   assert.ok(args.includes('--id-fd=3'));
   assert.ok(args.includes('--selected-action-fd=4'));
   assert.ok(args.includes('string:desktop-entry:deepseek-ai-dsh-desktop'));
