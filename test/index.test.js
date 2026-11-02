@@ -94,6 +94,7 @@ test('apply registers the open-session handoff routes', () => {
   apply(ctx, { desktop: false, kdeconnect: false });
   assert.deepEqual(routes.map((route) => route.path).sort(), [
     '/api/dsh-notify-kde/consumed',
+    '/api/dsh-notify-kde/hello',
     '/api/dsh-notify-kde/pending',
   ]);
 });

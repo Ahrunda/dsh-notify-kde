@@ -12,10 +12,19 @@
 
 import { appendLog } from './lib/log.js';
 import { createOpener } from './lib/opener.js';
+import { createRequire } from 'node:module';
 import { createNotifier } from './lib/notifier.js';
 
 /** The plugin's package name; it must match package.json. */
 export const name = 'dsh-notify-kde';
+
+const PLUGIN_VERSION = (() => {
+  try {
+    return createRequire(import.meta.url)('./package.json').version;
+  } catch {
+    return 'unknown';
+  }
+})();
 
 /** The durable session firehose only exists once a SessionStore is composed. */
 export const inject = ['sessions'];
@@ -87,6 +96,7 @@ export function apply(ctx, config = {}) {
     else console.log(message);
   };
 
+  log('info', `plugin ${PLUGIN_VERSION} loaded`);
   const opener = createOpener({ log });
   const notifier = createNotifier({
     patchConfig: config !== null && typeof config === 'object' ? config : {},
