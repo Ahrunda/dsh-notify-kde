@@ -114,7 +114,7 @@ export function apply(ctx, config = {}) {
       name: 'notify-kde',
       description: 'notify-kde: 桌面通知 + KDE Connect 手机推送（status | test | on | off | ignore）',
       input: { hint: 'status | test | on | off | ignore <preset...>' },
-      async handler({ rawInput }) {
+      async handler({ agent, rawInput }) {
         const sub = String(rawInput ?? '').trim().toLowerCase();
         if (sub === 'on' || sub === 'off') {
           const enabled = sub === 'on';
@@ -134,7 +134,8 @@ export function apply(ctx, config = {}) {
           };
         }
         if (sub === 'test') {
-          const result = await notifier.test();
+          const sessionId = agent && agent.session && typeof agent.session.id === 'string' ? agent.session.id : '';
+          const result = await notifier.test({ sessionId });
           const phone = result.phone;
           const phoneText = phone === undefined
             ? '手机：未尝试'

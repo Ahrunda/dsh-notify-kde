@@ -52,7 +52,7 @@ https://github.com/Ahrunda/dsh-notify-kde
 /notify-kde test
 ```
 
-桌面应弹出一条 8 秒通知，手机会同时震一下。
+桌面应弹出一条 8 秒通知，手机会同时震一下。`/notify-kde test` 的「打开会话」按钮会回到你执行命令时所在的会话（没有会话上下文时不显示按钮）。
 
 ### 从 npm（如果以后发布到 npm）
 
@@ -66,7 +66,7 @@ dsh plugin --profile web add dsh-notify-kde
 
 1. 打开 DSH 侧栏 **插件** → **安装**。
 2. 在安装输入框里填本目录的绝对路径（例如 `/path/to/DSHPlugin`）；
-   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.0.tgz`。
+   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.1.tgz`。
 3. 安装后确认 `notify-kde` 是启用状态，然后**重启 DSH**。
 4. 发 `/notify-kde test` 验证。
 
