@@ -144,3 +144,18 @@ test('normalize keeps a clean ignoreAgentPresets list', () => {
   const config = normalize({ ignoreAgentPresets: [' aurabot-private ', 2, ''] });
   assert.deepEqual(config.ignoreAgentPresets, ['aurabot-private']);
 });
+
+test('buildNotifyArgs adds the default action and id/action fds', () => {
+  const args = buildNotifyArgs(
+    { appName: 'DeepSeek Harness', urgency: 'normal', desktopTimeoutMs: 8000, icon: '', desktopEntry: 'deepseek-ai-dsh-desktop' },
+    'title',
+    'body',
+    7,
+    { action: '打开会话', idFd: 3, actionFd: 4 },
+  );
+  assert.deepEqual(args.slice(args.indexOf('-A'), args.indexOf('-A') + 2), ['-A', 'default=打开会话']);
+  assert.ok(args.includes('--id-fd=3'));
+  assert.ok(args.includes('--selected-action-fd=4'));
+  assert.ok(args.includes('string:desktop-entry:deepseek-ai-dsh-desktop'));
+  assert.equal(args.includes('-p'), false);
+});

@@ -1,17 +1,19 @@
 {
   "name": "dsh-notify-kde",
-  "version": "0.1.1",
-  "description": "KDE desktop notification plus a KDE Connect phone ping when DSH finishes a turn, needs approval, or waits for an answer.",
+  "version": "0.2.0",
+  "description": "KDE desktop notification plus a KDE Connect phone ping when DSH needs you; click the notification to return to the session.",
   "type": "module",
   "main": "index.js",
   "exports": {
     ".": "./index.js",
+    "./client": "./lib/client.js",
     "./format": "./lib/format.js",
     "./package.json": "./package.json"
   },
   "files": [
     "index.js",
     "lib",
+    "assets",
     "cordis.patch.yml",
     "tools",
     "README.md",
@@ -47,6 +49,12 @@
         "zh": "桌面通知 + KDE Connect 手机推送：跑完、等你回答、等你批准时提醒。",
         "en": "Desktop notifications plus a KDE Connect phone ping when a turn finishes, a question waits, or approval is needed."
       }
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ]
     }
   },
   "engines": {

@@ -1,6 +1,7 @@
 # dsh-notify-kde
 
 DSH 需要你的时候，弹一条 **KDE 桌面通知**，同时通过 **KDE Connect** 把同一条消息推到手机。
+通知带 DSH 的应用名、图标和「打开会话」按钮：点一下就把 DSH 窗口抬到前台，并切到发通知的那个会话。
 
 这是 [`pi-notify-kde`](https://github.com/Ahrunda/pi-notify-kde) 的 DSH 移植版：触发时机、文案、
 节流和手机重试逻辑都沿用原版，只把 pi 的事件换成了 DSH 的会话事件。
@@ -65,7 +66,7 @@ dsh plugin --profile web add dsh-notify-kde
 
 1. 打开 DSH 侧栏 **插件** → **安装**。
 2. 在安装输入框里填本目录的绝对路径（例如 `/path/to/DSHPlugin`）；
-   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.1.1.tgz`。
+   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.0.tgz`。
 3. 安装后确认 `notify-kde` 是启用状态，然后**重启 DSH**。
 4. 发 `/notify-kde test` 验证。
 
@@ -95,7 +96,8 @@ dsh plugin --profile web add dsh-notify-kde
   "snippetChars": 140,
   "suppressWhenAborted": true,
   "suppressSubagentSessions": true,
-  "ignoreAgentPresets": []
+  "ignoreAgentPresets": [],
+  "openAction": true
 }
 ```
 
@@ -116,6 +118,10 @@ dsh plugin --profile web add dsh-notify-kde
 | `suppressWhenAborted` | `true` | 你按 Esc 中断的那一轮不提醒 |
 | `suppressSubagentSessions` | `true` | 子代理会话不单独提醒 |
 | `ignoreAgentPresets` | `[]` | 完全忽略这些 agent preset 的会话，例如 Aurabot 的 `aurabot-private` |
+| `openAction` | `true` | 通知上带「打开会话」按钮；点击后抬窗并切到该会话 |
+| `appName` | `DeepSeek Harness` | 通知里显示的应用名 |
+| `icon` | 内置图标 | 通知图标路径或图标名；空 = 用插件自带的 `assets/icon.png` |
+| `desktopEntry` | `deepseek-ai-dsh-desktop` | KDE 用来关联应用图标的 desktop entry；不用 KDE 可留空 |
 
 `/notify-kde` 命令：
 
@@ -146,6 +152,21 @@ node tools/ignore-aurabot.mjs
 /notify-kde unignore aurabot-private
 ```
 
+### 点击通知回到会话
+
+`openAction` 打开时，`notify-send` 会带一个 `default` 动作；点击通知正文或「打开会话」按钮后：
+
+1. 宿主先把待打开的 session id 写到 `/api/dsh-notify-kde/pending`；
+2. 用 `xdg-open dsh://open` 把 DSH 窗口抬到前台；
+3. 网页端插件轮询到 pending id，调用 `uiWorkspace.openSession(sessionId)` 切过去，再 POST 消费掉。
+
+网页端那一半在 `lib/client.js`，由 DSH 客户端加载。改完宿主和客户端代码都需要**重启 DSH**
+（客户端 bundle 还会随页面刷新重新加载）。
+
+如果点击后只抬窗、不切会话：先看 `~/.dsh/notify-kde.log` 里有没有 `open requested: ...`，
+再看浏览器控制台有没有 `/api/dsh-notify-kde/pending` 的 404（说明宿主那一半没加载）或
+`uiWorkspace` 不可用。
+
 ## 排查
 
 日志在 `$DSH_HOME/notify-kde.log`，每次投递都有一行 `desktop: sent ...` 或失败原因。
@@ -170,7 +191,7 @@ node tools/smoke.mjs                # 两条都测
 ## 已知限制
 
 - 只支持 Linux/KDE；`notify-send` 和 `kdeconnect-cli` 是硬依赖。
-- 不能点击通知聚焦到对应会话：Wayland 下可靠地找到并激活正确的窗口超出本插件范围。
+- 点击通知会切到对应会话；抬窗依赖桌面 app 的 `dsh://open`。窗口最小化时能否可靠恢复，取决于 Electron 的 `second-instance` 行为，本机只验证了 `xdg-open` 退出 0，没有肉眼验证。
 - `ping` 是「通知 + 震动」，不是可交互通知；手机上不能直接批准或回答。
 - `includeSnippet: true` 会把最后回复的首行送到手机锁屏；敏感场景请关掉。
 

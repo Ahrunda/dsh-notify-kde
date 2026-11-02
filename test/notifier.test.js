@@ -40,6 +40,7 @@ const BASE = {
   approvalDelayMs: 0,
   kdeconnect: true,
   desktop: true,
+  openAction: false,
   coalesce: true,
   includeSnippet: true,
   annotatePhoneFailure: true,

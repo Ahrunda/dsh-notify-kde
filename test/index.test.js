@@ -9,6 +9,7 @@ import { apply, countRunningSubagents, name as pluginName } from '../index.js';
 function fakeContext() {
   const handlers = new Map();
   const commands = [];
+  const routes = [];
   const ctx = {
     logger: { info() {}, warn() {} },
     on(event, handler) {
@@ -17,6 +18,19 @@ function fakeContext() {
     },
     effect(factory) {
       return factory();
+    },
+    inject(_deps, callback) {
+      return callback({
+        effect(factory) {
+          return factory();
+        },
+        webServer: {
+          register(route) {
+            routes.push(route);
+            return () => {};
+          },
+        },
+      });
     },
     get(service) {
       if (service === 'commands') {
@@ -30,7 +44,7 @@ function fakeContext() {
       return undefined;
     },
   };
-  return { ctx, handlers, commands };
+  return { ctx, handlers, commands, routes };
 }
 
 test('apply wires the session firehose and registers /notify-kde', () => {
@@ -73,4 +87,13 @@ test('/notify-kde ignore persists the preset list', async () => {
     if (previous === undefined) delete process.env.DSH_HOME;
     else process.env.DSH_HOME = previous;
   }
+});
+
+test('apply registers the open-session handoff routes', () => {
+  const { ctx, routes } = fakeContext();
+  apply(ctx, { desktop: false, kdeconnect: false });
+  assert.deepEqual(routes.map((route) => route.path).sort(), [
+    '/api/dsh-notify-kde/consumed',
+    '/api/dsh-notify-kde/pending',
+  ]);
 });

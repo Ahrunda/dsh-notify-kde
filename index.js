@@ -11,6 +11,7 @@
  */
 
 import { appendLog } from './lib/log.js';
+import { createOpener } from './lib/opener.js';
 import { createNotifier } from './lib/notifier.js';
 
 /** The plugin's package name; it must match package.json. */
@@ -86,11 +87,22 @@ export function apply(ctx, config = {}) {
     else console.log(message);
   };
 
+  const opener = createOpener({ log });
   const notifier = createNotifier({
     patchConfig: config !== null && typeof config === 'object' ? config : {},
     log,
     countRunning: (sessionId) => countRunningSubagents(ctx, sessionId),
+    onOpenSession: (sessionId) => opener.open(sessionId),
   });
+
+  // The browser half polls this route after a notification click. The service
+  // is optional: a headless profile still gets notifications, just no handoff.
+  if (typeof ctx.inject === 'function') {
+    ctx.inject(['webServer'], (sctx) => {
+      if (!sctx.webServer || typeof sctx.webServer.register !== 'function') return;
+      sctx.effect(() => opener.register(sctx.webServer), 'dsh-notify-kde: open-session route');
+    });
+  }
 
   ctx.on('session/event', (session, event) => notifier.onSessionEvent(session, event));
   ctx.on('session/disposed', (session) => notifier.onSessionDisposed(session));

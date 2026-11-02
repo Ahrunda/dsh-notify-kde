@@ -13,6 +13,9 @@
 | `lib/delivery.js` | 真正执行 `notify-send` / `gdbus` / `kdeconnect-cli` |
 | `lib/notifier.js` | 决策表：完成/提问/审批、节流、合并、撤回、手机重试 |
 | `lib/log.js` | `$DSH_HOME/notify-kde.log` |
+| `lib/opener.js` | 点击通知后的 pending session + `/api/dsh-notify-kde/*` 路由 |
+| `lib/client.js` | 网页端轮询 pending，调用 `uiWorkspace.openSession` |
+| `assets/icon.png` | 通知图标 |
 | `tools/smoke.mjs` | 不经过 DSH 的真实链路冒烟 |
 
 宿主侧插件，刻意不 import 任何 `@deepseek-ai/*`：配置、日志、子进程全部用 `node:*`，
@@ -39,6 +42,13 @@
 - IM 桥接（Aurabot/QQ）的会话带 `header.agentPreset = aurabot-private |
   aurabot-private-long | aurabot-social`。这些会话一轮常超过 30 秒，会被当成“跑完了”；
   用 `ignoreAgentPresets` 按 preset 整体跳过，不要靠提高 minDurationMs 去抑制。
+- 可点击通知：`notify-send 0.8.9` 支持 `-A default=...` + `--id-fd` / `--selected-action-fd`，
+  实测能拿到 id（26）且通知超时后进程自行退出，不留 notify-send。
+- 客户端跳会话用 `ctx.get('uiWorkspace').openSession(sessionId)`；`sessions.open` 是旧版回退。
+  客户端 bundle 放在 `lib/client.js`，用 `window.__ModuleLoader__.load` 的 lazy-CJS 壳，
+  `dsh.client.platform = web`，`dsh.client.inject` 里列 `@deepseek-ai/dsh-client-ui-workspace`。
+- `dsh://` 协议已注册（桌面文件 `deepseek-ai-dsh-desktop.desktop`）；`xdg-open dsh://open`
+  退出 0。Linux 走 `second-instance` 的 `focusOwner`，**抬窗是否成功还没有肉眼验证**。
 
 ## 集成测试（不碰真实 `~/.dsh`）
 
@@ -61,7 +71,7 @@ cat "$SM/notify-kde.log"   # 应出现 desktop: sent (id N)
 
 ## 测试纪律
 
-- `node --test`（当前 37 条）。纯函数、notifier 决策表、入口接线都要有测试。
+- `node --test`（当前 43 条）。纯函数、notifier 决策表、入口接线都要有测试。
 - 每个修过的 bug 留一条**区分性断言**：bug 回来测试就红。
 - 真机链路用 `node tools/smoke.mjs --no-phone` / `--no-desktop` 分别验证，
   不要把“单测过”当成“通知真的弹了”。
@@ -79,5 +89,5 @@ cat "$SM/notify-kde.log"   # 应出现 desktop: sent (id N)
 ## 已知未做
 
 - 没有设置页（DSH 设置 UI）；配置走 patch + JSON。
-- 不能点击通知聚焦会话（Wayland 限制）。
+- 点击通知已能切会话；抬窗依赖 `dsh://open`，最小化窗口能否恢复未肉眼验证。
 - Windows/macOS 后端未实现，`supportedPlatform()` 直接返回 false。
