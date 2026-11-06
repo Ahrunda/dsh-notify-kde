@@ -67,7 +67,7 @@ dsh plugin --profile web add dsh-notify-kde
 
 1. 打开 DSH 侧栏 **插件** → **安装**。
 2. 在安装输入框里填本目录的绝对路径（例如 `/path/to/DSHPlugin`）；
-   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.3.tgz`。
+   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.4.tgz`。
 3. 安装后确认 `notify-kde` 是启用状态，然后**重启 DSH**。
 4. 发 `/notify-kde test` 验证。
 
@@ -97,6 +97,7 @@ dsh plugin --profile web add dsh-notify-kde
   "snippetChars": 140,
   "suppressWhenAborted": true,
   "suppressSubagentSessions": true,
+  "suppressWhenFocused": true,
   "ignoreAgentPresets": [],
   "openAction": true
 }
@@ -118,6 +119,7 @@ dsh plugin --profile web add dsh-notify-kde
 | `annotatePhoneFailure` | `true` | 手机没送达时在桌面通知里注明 |
 | `suppressWhenAborted` | `true` | 你按 Esc 中断的那一轮不提醒 |
 | `suppressSubagentSessions` | `true` | 子代理会话不单独提醒 |
+| `suppressWhenFocused` | `true` | 目标会话正好是当前聚焦会话时不提醒（后台会话、DSH 失焦时照常提醒） |
 | `ignoreAgentPresets` | `[]` | 完全忽略这些 agent preset 的会话，例如 Aurabot 的 `aurabot-private` |
 | `openAction` | `true` | 通知上带「打开会话」按钮；点击后抬窗并切到该会话 |
 | `appName` | `DeepSeek Harness` | 通知里显示的应用名 |
@@ -131,6 +133,12 @@ dsh plugin --profile web add dsh-notify-kde
 | `/notify-kde` 或 `/notify-kde status` | 当前配置、DBus、上次手机投递结果 |
 | `/notify-kde test` | 立刻发一条桌面 + 手机测试 |
 | `/notify-kde on` / `off` | 总开关（写 `notify-kde.json`，先备份 `.bak`） |
+
+### 当前会话聚焦时不打扰
+
+网页端会把「当前选中的会话 + 窗口是否聚焦」报给宿主。目标会话正好是你正在看的那个、且 DSH 窗口在前台时，这次提醒直接跳过（桌面和手机都不发）。后台会话完成、或 DSH 被其他窗口挡住/最小化时，仍然提醒。
+
+`/notify-kde test` 是显式测试，不受这条抑制影响。
 
 ### 让 Aurabot（QQ 大肥鱼）不提醒
 

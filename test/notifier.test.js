@@ -48,7 +48,7 @@ const BASE = {
   desktopTimeoutMs: 6000,
 };
 
-function makeNotifier({ patch = {}, run = createRun().run, countRunning = async () => 0, clock = { now: 0 } } = {}) {
+function makeNotifier({ patch = {}, run = createRun().run, countRunning = async () => 0, isSessionFocused = () => false, clock = { now: 0 } } = {}) {
   const fake = typeof run === 'function' ? { run } : run;
   const notifier = createNotifier({
     patchConfig: { ...BASE, ...patch },
@@ -56,6 +56,7 @@ function makeNotifier({ patch = {}, run = createRun().run, countRunning = async 
     now: () => clock.now,
     ensureEnv: () => true,
     countRunning,
+    isSessionFocused,
     subagentPollMs: 10,
     log: () => {},
   });
@@ -357,4 +358,24 @@ test('a normal session still alerts while Aurabot presets are ignored', async ()
   await wait();
 
   assert.equal(notifyCalls(fake.calls).length, 1);
+});
+
+test('the focused session stays silent, while an unfocused one alerts', async () => {
+  const focusedRun = createRun();
+  const focused = makeNotifier({ run: focusedRun.run, isSessionFocused: (id) => id === 's1' });
+  const s = session();
+
+  focused.notifier.onSessionEvent(s, { type: 'turn/start', data: { turn: 1 } });
+  focused.clock.now = 5000;
+  focused.notifier.onSessionEvent(s, { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } });
+  await wait();
+  assert.equal(notifyCalls(focusedRun.calls).length, 0);
+
+  const unfocusedRun = createRun();
+  const unfocused = makeNotifier({ run: unfocusedRun.run, isSessionFocused: () => false });
+  unfocused.notifier.onSessionEvent(s, { type: 'turn/start', data: { turn: 1 } });
+  unfocused.clock.now = 5000;
+  unfocused.notifier.onSessionEvent(s, { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } });
+  await wait();
+  assert.equal(notifyCalls(unfocusedRun.calls).length, 1);
 });

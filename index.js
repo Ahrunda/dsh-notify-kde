@@ -103,6 +103,7 @@ export function apply(ctx, config = {}) {
     log,
     countRunning: (sessionId) => countRunningSubagents(ctx, sessionId),
     onOpenSession: (sessionId) => opener.open(sessionId),
+    isSessionFocused: (sessionId) => opener.isFocused(sessionId),
   });
 
   // The browser half polls this route after a notification click. The service
