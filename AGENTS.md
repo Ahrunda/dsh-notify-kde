@@ -71,7 +71,7 @@ cat "$SM/notify-kde.log"   # 应出现 desktop: sent (id N)
 
 ## 测试纪律
 
-- `node --test`（当前 43 条）。纯函数、notifier 决策表、入口接线都要有测试。
+- `node --test`（当前 44 条）。纯函数、notifier 决策表、入口接线都要有测试。
 - 每个修过的 bug 留一条**区分性断言**：bug 回来测试就红。
 - 真机链路用 `node tools/smoke.mjs --no-phone` / `--no-desktop` 分别验证，
   不要把“单测过”当成“通知真的弹了”。

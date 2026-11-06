@@ -96,5 +96,6 @@ test('apply registers the open-session handoff routes', () => {
     '/api/dsh-notify-kde/consumed',
     '/api/dsh-notify-kde/hello',
     '/api/dsh-notify-kde/pending',
+    '/api/dsh-notify-kde/result',
   ]);
 });
