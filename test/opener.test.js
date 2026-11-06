@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 
 import { CONSUMED_PATH, PENDING_PATH, createOpener } from '../lib/opener.js';
@@ -9,6 +11,8 @@ function harness() {
   const spawned = [];
   const opener = createOpener({
     log: () => {},
+    run: async () => ({ ok: false, out: '', err: 'no kwin' }),
+    focusScriptPath: join(tmpdir(), 'dsh-notify-kde-focus-test.js'),
     spawnFn: (cmd, args) => {
       spawned.push([cmd, ...args]);
       const child = new EventEmitter();
@@ -43,6 +47,7 @@ async function call(handler, method, url) {
 test('a click leaves a pending session and raises the window', async () => {
   const { opener, routes, spawned } = harness();
   opener.open('session-1');
+  await new Promise((resolve) => setTimeout(resolve, 10));
   assert.deepEqual(spawned[0], ['xdg-open', 'dsh://open']);
 
   const pending = await call(routes.get(PENDING_PATH), 'GET', PENDING_PATH);

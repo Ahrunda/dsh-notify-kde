@@ -29,6 +29,7 @@ DSH 需要你的时候，弹一条 **KDE 桌面通知**，同时通过 **KDE Con
 | Linux + KDE Plasma（有会话 DBus） | 桌面通知 |
 | `notify-send` / `gdbus`（libnotify） | 弹通知 / 撤回通知 |
 | `kdeconnect-cli` + 手机端 KDE Connect | 推手机；手机需已配对且此刻可达 |
+| `qdbus6` + KWin | 点击通知时激活 DSH 窗口（非 KDE 退回 `dsh://open`） |
 
 没有 `kdeconnect-cli` 或手机不可达时，桌面通知照发，正文里会注明「手机未送达」。
 
@@ -66,7 +67,7 @@ dsh plugin --profile web add dsh-notify-kde
 
 1. 打开 DSH 侧栏 **插件** → **安装**。
 2. 在安装输入框里填本目录的绝对路径（例如 `/path/to/DSHPlugin`）；
-   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.2.tgz`。
+   如果输入框只收文件，就填打包生成的 `dsh-notify-kde-0.2.3.tgz`。
 3. 安装后确认 `notify-kde` 是启用状态，然后**重启 DSH**。
 4. 发 `/notify-kde test` 验证。
 
@@ -157,7 +158,7 @@ node tools/ignore-aurabot.mjs
 `openAction` 打开时，`notify-send` 会带一个 `default` 动作；点击通知正文或「打开会话」按钮后：
 
 1. 宿主先把待打开的 session id 写到 `/api/dsh-notify-kde/pending`；
-2. 用 `xdg-open dsh://open` 把 DSH 窗口抬到前台；
+2. 用 KWin 脚本把 DSH 窗口激活到前台（非 KDE 才退回 `xdg-open dsh://open`）；
 3. 网页端插件轮询到 pending id，调用 `uiWorkspace.openSession(sessionId)` 切过去，再 POST 消费掉。
 
 网页端那一半在 `lib/client.js`，由 DSH 客户端加载。改完宿主和客户端代码都需要**重启 DSH**
@@ -191,7 +192,7 @@ node tools/smoke.mjs                # 两条都测
 ## 已知限制
 
 - 只支持 Linux/KDE；`notify-send` 和 `kdeconnect-cli` 是硬依赖。
-- 点击通知会切到对应会话；抬窗依赖桌面 app 的 `dsh://open`。窗口最小化时能否可靠恢复，取决于 Electron 的 `second-instance` 行为，本机只验证了 `xdg-open` 退出 0，没有肉眼验证。
+- 点击通知会切 workspace 再开会话，并用 KWin 脚本激活 DSH 窗口；实测在 Chrome 前台时能把 DSH 抬回前台。没有 KWin 的桌面会退回 `dsh://open`。
 - `ping` 是「通知 + 震动」，不是可交互通知；手机上不能直接批准或回答。
 - `includeSnippet: true` 会把最后回复的首行送到手机锁屏；敏感场景请关掉。
 

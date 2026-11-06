@@ -47,8 +47,14 @@
 - 客户端跳会话用 `ctx.get('uiWorkspace').openSession(sessionId)`；`sessions.open` 是旧版回退。
   客户端 bundle 放在 `lib/client.js`，用 `window.__ModuleLoader__.load` 的 lazy-CJS 壳，
   `dsh.client.platform = web`，`dsh.client.inject` 里列 `@deepseek-ai/dsh-client-ui-workspace`。
-- `dsh://` 协议已注册（桌面文件 `deepseek-ai-dsh-desktop.desktop`）；`xdg-open dsh://open`
-  退出 0。Linux 走 `second-instance` 的 `focusOwner`，**抬窗是否成功还没有肉眼验证**。
+- 抬窗最终用 KWin 脚本：精确匹配 `resourceClass` / `desktopFileName` =
+  `deepseek-ai-dsh-desktop`，再 `workspace.activeWindow = target`。KWin 6.8 的窗口对象**没有**
+  `activate()` 方法（调用会 TypeError），只能用 activeWindow setter。
+- `loadScript` 返回后要等 ~150ms 再 `start()`，否则脚本可能还没注册、`start` 什么也不跑；
+  启动后 1.2s 再 `unloadScript`。实测 Chrome 在前台时能把活动窗口切回 DSH。
+- 客户端跨 workspace 时先 `uiWorkspace.openWorkspace(workspaceId)`，Promise 完成后
+  `openSession(sessionId)`；否则只换选中项、主界面仍停在旧 workspace。用 `navigating`
+  标志防止重复切换。
 
 ## 集成测试（不碰真实 `~/.dsh`）
 
@@ -89,5 +95,5 @@ cat "$SM/notify-kde.log"   # 应出现 desktop: sent (id N)
 ## 已知未做
 
 - 没有设置页（DSH 设置 UI）；配置走 patch + JSON。
-- 点击通知已能切会话；抬窗依赖 `dsh://open`，最小化窗口能否恢复未肉眼验证。
+- 点击通知已能切 workspace/会话，并用 KWin 脚本抬窗；非 KDE 桌面退回 `dsh://open`。
 - Windows/macOS 后端未实现，`supportedPlatform()` 直接返回 false。

@@ -1,6 +1,6 @@
 {
   "name": "dsh-notify-kde",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "KDE desktop notification plus a KDE Connect phone ping when DSH needs you; click the notification to return to the session.",
   "type": "module",
   "main": "index.js",
