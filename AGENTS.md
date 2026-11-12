@@ -81,7 +81,7 @@ cat "$SM/notify-kde.log"   # 应出现 desktop: sent (id N)
 
 ## 测试纪律
 
-- `node --test`（当前 45 条）。纯函数、notifier 决策表、入口接线都要有测试。
+- `node --test`（当前 50 条）。纯函数、notifier 决策表、入口接线都要有测试。
 - 每个修过的 bug 留一条**区分性断言**：bug 回来测试就红。
 - 真机链路用 `node tools/smoke.mjs --no-phone` / `--no-desktop` 分别验证，
   不要把“单测过”当成“通知真的弹了”。
@@ -95,6 +95,14 @@ cat "$SM/notify-kde.log"   # 应出现 desktop: sent (id N)
 - 不要把 `.credentials.yaml`、API key、设备 id 以外的隐私写进日志或 README。
 - 手机不可达时不要静默失败：桌面正文要注明，日志要留一行。
 - 改 `lib/config.js` 的默认值时同步 README 表格与 `cordis.patch.yml` 注释。
+
+## 2026-11-11：未释放 fetch 响应导致 renderer 描述符耗尽
+
+- 现场 renderer 打开描述符数=1024，软上限也为1024。990个为共享内存文件，983个为64KiB；其中979个正文为 `{"ok":true}`。通知客户端的focus每2秒上报、hello/result/consumed此前忽略正文，导致这些响应的共享内存描述符保留。
+- 所有不需要正文的fetch必须 `.then(discardResponse)`，显式 `response.body.cancel()`；pending成功读取JSON，非成功也必须取消正文。只挂catch不释放正文；不能依赖GC赶在FD上限之前执行。
+- 在DSH原样Electron44.7.0、独立Xvfb、关闭GPU、renderer软上限1024的对照中：旧客户端1000次心跳后FD从31增到1024；修复版2500次维持约32。字体fallback等待是耗尽后的症状之一，不能仅凭栈把根因归到字体服务。
+- 证据/复现实验在 `~/Project/dsh-freeze-probe/evidence/20261111/freeze-142256/` 和 `~/Project/dsh-freeze-probe/repro/unread-response/`。补丁前备份在 `.tmp/fd-bodyfix-backup-20261111/`；恢复客户端用备份中的 `lib/client.js` 覆盖同名文件，完整重启DSH加载。
+- 0.2.5 起再加一层：心跳类路由与空闲的 `/pending` 回 204（`writeEmpty`），浏览器端不产生 Response body；每个状态请求带 `AbortSignal.timeout(5000)`；页面 `visibilityState === 'hidden'` 时暂停 pending 轮询（`visibilitychange` 立刻恢复）；`navigating` 在 `finally` 里复位，导航抛错不会永久卡住点击跳转。新增三条区分性测试（204 不解析/不导航、隐藏暂停、请求带 5s deadline）。
 
 ## 已知未做
 

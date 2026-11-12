@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { CONSUMED_PATH, PENDING_PATH, createOpener } from '../lib/opener.js';
+import { CONSUMED_PATH, FOCUS_PATH, HELLO_PATH, PENDING_PATH, RESULT_PATH, createOpener } from '../lib/opener.js';
 
 function harness() {
   const routes = new Map();
@@ -34,14 +34,14 @@ function response() {
     statusCode: 0,
     body: '',
     setHeader() {},
-    end(body) { this.body = String(body); },
+    end(body) { this.body = body === undefined ? '' : String(body); },
   };
 }
 
 async function call(handler, method, url) {
   const res = response();
   await handler({ method, url }, res);
-  return { status: res.statusCode, json: JSON.parse(res.body) };
+  return { status: res.statusCode, body: res.body, json: res.body.length > 0 ? JSON.parse(res.body) : undefined };
 }
 
 test('a click leaves a pending session and raises the window', async () => {
@@ -54,10 +54,30 @@ test('a click leaves a pending session and raises the window', async () => {
   assert.equal(pending.json.sessionId, 'session-1');
 
   const consumed = await call(routes.get(CONSUMED_PATH), 'POST', `${CONSUMED_PATH}?sessionId=session-1`);
-  assert.equal(consumed.status, 200);
+  assert.equal(consumed.status, 204);
+  assert.equal(consumed.body, '');
 
   const after = await call(routes.get(PENDING_PATH), 'GET', PENDING_PATH);
-  assert.equal(after.json.sessionId, null);
+  assert.equal(after.status, 204);
+  assert.equal(after.body, '');
+});
+
+test('fire-and-forget routes answer 204 so no response body is allocated', async () => {
+  const { routes } = harness();
+  const cases = [
+    [HELLO_PATH, 'POST'],
+    [FOCUS_PATH, 'POST'],
+    [RESULT_PATH, 'POST'],
+    [CONSUMED_PATH, 'POST'],
+  ];
+  for (const [path, method] of cases) {
+    const answer = await call(routes.get(path), method, `${path}?session=x&focused=1&visible=1&status=ok`);
+    assert.equal(answer.status, 204, path);
+    assert.equal(answer.body, '', path);
+  }
+  const idle = await call(routes.get(PENDING_PATH), 'GET', PENDING_PATH);
+  assert.equal(idle.status, 204);
+  assert.equal(idle.body, '');
 });
 
 test('a stale pending session expires', async () => {

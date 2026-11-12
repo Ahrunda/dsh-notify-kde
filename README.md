@@ -140,6 +140,13 @@ dsh plugin --profile web add dsh-notify-kde
 
 `/notify-kde test` 是显式测试，不受这条抑制影响。
 
+资源纪律（2026-11-11 冻结故障的修复）：
+
+- 心跳类路由（`/hello`、`/focus`、`/result`、`/consumed`）以及没有待处理会话时的 `/pending` 一律回 **204 无正文**，浏览器端根本不会分配响应缓冲；有 pending 时才回 JSON。
+- 客户端对任何不读正文的响应仍会 `.then(discardResponse)` 显式 `body.cancel()`。不要删除这一步：Electron/Linux 下未读取的 `no-store` 响应会保留共享内存描述符，持续上报可能耗尽 renderer 的 1024 上限并导致界面冻结。
+- 每个状态请求都带 5s 超时（`AbortSignal.timeout`）：宿主卡住时请求会中止，而不是在 renderer 里排队。
+- 页面隐藏/最小化时暂停 pending 轮询，`visibilitychange` 变可见后立即恢复；心跳继续上报失焦状态，否则“聚焦不打扰”会失效。
+
 ### 让 Aurabot（QQ 大肥鱼）不提醒
 
 Aurabot 每个 QQ 会话都跑在自己的 agent preset 上，一轮经常超过 30 秒，所以会被当成“跑完了”。
