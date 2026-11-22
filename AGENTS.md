@@ -56,9 +56,12 @@
   `openSession(sessionId)`；否则只换选中项、主界面仍停在旧 workspace。用 `navigating`
   标志防止重复切换。
 - 聚焦抑制：客户端每 2s + focus/blur/visibilitychange/selection 变化时 POST
-  `/api/dsh-notify-kde/focus?session&focused&visible`；宿主 `opener.isFocused(sessionId)`
-  只在“同一会话 + 窗口聚焦 + 可见”且 30s 内有效。`suppressWhenFocused` 默认 true，
-  `/notify-kde test` 用 `force: true` 绕过。
+  `/api/dsh-notify-kde/focus?client&session&focused&visible`；宿主按 client id 分槽保存
+  （`focusStates`），`opener.isFocused(sessionId)` 在**任一**窗口“同一会话 + 聚焦 + 可见”
+  且 8s 内有效时为 true——多窗口时后到的“未聚焦”不会覆盖前一窗口的“聚焦”。
+  `suppressWhenFocused` 默认 true，`/notify-kde test` 用 `force: true` 绕过；
+  `/notify-kde status` 列出各窗口上报与是否过期，日志里 `focus:` 记录状态变化，
+  `suppressed:` / `desktop: sent ... session=` 记录每次决策。
 
 ## 集成测试（不碰真实 `~/.dsh`）
 
@@ -81,7 +84,7 @@ cat "$SM/notify-kde.log"   # 应出现 desktop: sent (id N)
 
 ## 测试纪律
 
-- `node --test`（当前 50 条）。纯函数、notifier 决策表、入口接线都要有测试。
+- `node --test`（当前 52 条）。纯函数、notifier 决策表、入口接线都要有测试。
 - 每个修过的 bug 留一条**区分性断言**：bug 回来测试就红。
 - 真机链路用 `node tools/smoke.mjs --no-phone` / `--no-desktop` 分别验证，
   不要把“单测过”当成“通知真的弹了”。

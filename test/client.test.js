@@ -83,6 +83,14 @@ test('the browser half opens the pending session and consumes it', async () => {
   for (const [url, options] of calls) {
     assert.equal(options.signal?.timeoutMs, 5000, `no fetch deadline: ${url}`);
   }
+  // Each renderer identifies itself so two windows cannot overwrite each other.
+  const focusCalls = calls.filter(([url]) => url.startsWith('/api/dsh-notify-kde/focus?'));
+  assert.ok(focusCalls.length >= 1);
+  const first = new URL(focusCalls[0][0], 'http://x').searchParams.get('client');
+  assert.ok(first && first.startsWith('page-'));
+  for (const [url] of focusCalls) {
+    assert.equal(new URL(url, 'http://x').searchParams.get('client'), first);
+  }
 });
 
 test('opening a session in another workspace switches the workspace first', async () => {

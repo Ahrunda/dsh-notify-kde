@@ -89,3 +89,48 @@ test('a stale pending session expires', async () => {
   opener.consume('session-1');
   assert.equal(opener.current(), null);
 });
+
+test('focus reports are kept per renderer window', async () => {
+  const { opener } = harness();
+  opener.setFocusState({ clientId: 'win-a', sessionId: 's1', focused: true, visible: true });
+  opener.setFocusState({ clientId: 'win-b', sessionId: 's2', focused: false, visible: true });
+  assert.equal(opener.isFocused('s1'), true);
+  assert.equal(opener.isFocused('s2'), false);
+
+  // A background window reporting blur must not cancel the focused window's report.
+  opener.setFocusState({ clientId: 'win-b', sessionId: 's1', focused: false, visible: true });
+  assert.equal(opener.isFocused('s1'), true);
+
+  // The focused window itself blurring does cancel it.
+  opener.setFocusState({ clientId: 'win-a', sessionId: 's1', focused: false, visible: true });
+  assert.equal(opener.isFocused('s1'), false);
+});
+
+test('focus reports expire and status says they are stale', async () => {
+  let clock = 1000;
+  const routes = new Map();
+  const opener = createOpener({
+    log: () => {},
+    now: () => clock,
+    run: async () => ({ ok: false, out: '', err: 'no kwin' }),
+    spawnFn: () => Object.assign(new EventEmitter(), { unref() {} }),
+  });
+  opener.register({
+    register(route) {
+      routes.set(route.path, route.handler);
+      return () => {};
+    },
+  });
+
+  await call(routes.get(FOCUS_PATH), 'POST', `${FOCUS_PATH}?client=w1&session=s1&focused=1&visible=1`);
+  assert.equal(opener.isFocused('s1'), true);
+
+  clock += 9000;
+  assert.equal(opener.isFocused('s1'), false);
+  const info = opener.focusInfo();
+  assert.equal(info.length, 1);
+  assert.equal(info[0].clientId, 'w1');
+  assert.equal(info[0].sessionId, 's1');
+  assert.equal(info[0].focused, true);
+  assert.equal(info[0].fresh, false);
+});

@@ -159,7 +159,15 @@ export function apply(ctx, config = {}) {
           };
         }
         const status = notifier.status();
-        return { kind: 'success', text: status.text };
+        const focus = opener.focusInfo();
+        const focusText = focus.length === 0
+          ? 'focus: 还没有收到浏览器的聚焦上报'
+          : focus.map((entry) => {
+            const id = entry.sessionId ? entry.sessionId.slice(0, 8) : '(none)';
+            const state = `${entry.focused ? '聚焦' : '未聚焦'}/${entry.visible ? '可见' : '隐藏'}`;
+            return `focus: ${id} ${state}，${(entry.ageMs / 1000).toFixed(1)}s 前${entry.fresh ? '' : '（已过期，不抑制）'}`;
+          }).join('\n');
+        return { kind: 'success', text: `${status.text}\n${focusText}` };
       },
     }), 'dsh-notify-kde: /notify-kde');
   }
